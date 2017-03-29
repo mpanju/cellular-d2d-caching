@@ -68,11 +68,16 @@ classdef LFRU_Cache < handle
                     expired = find( this.timeArrival < (time - this.ttlThreshold)); % Obtain list of expired contents
 
                     if isempty(expired) ~= 1 % There are some expired contents
-                        replace_ = find( this.counter(expired) == min(this.counter(expired)),1); % Find the expired content with minimum count
+                        replace_ = find( this.counter(expired) == min(this.counter(expired))); % Find the expired content with minimum count
 %                         replace_ = find( this.counter(expired) == max(this.data(expired)),1); % Find the expired content with least popularity
+                        replace_ = datasample(replace_,1);
                         replace = expired(replace_);
+                        if this.data(replace) ~= 0
+                            this.state(this.data(replace)) = 0;
+                        end
                         this.Timer(this.data(replace)) = [this.Timer(this.data(replace)) -1*time]; % Record time of departure
                         this.data(replace) = CID; % insert requested content in the place of removed content and update conter and timer.
+                        this.state(CID) = 1;
                         this.counter(replace) =  1;
                         this.timeArrival(replace) = time;
                         this.timeRequest(replace) = time;
@@ -82,9 +87,12 @@ classdef LFRU_Cache < handle
                             fprintf('\n\nLRU part not right \n');
                         end
                         this.Timer(this.data(replace)) = [this.Timer(this.data(replace)) -1*time]; % Record time of departure
-
+                        if this.data(replace) ~= 0
+                            this.state(this.data(replace)) = 0;
+                        end
                         this.data(replace) = CID;% insert requested content in the place of removed content and update conter and timer.
                         this.counter(replace) =  1;
+                        this.state(CID) = 1;                        
                         this.timeArrival(replace) = time;
                         this.timeRequest(replace) = time;
                     end
